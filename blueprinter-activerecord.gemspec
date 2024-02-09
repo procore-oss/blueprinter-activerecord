@@ -17,6 +17,8 @@ Gem::Specification.new do |spec|
   spec.metadata['homepage_uri'] = spec.homepage
   spec.metadata['source_code_uri'] = 'https://github.com/procore-oss/blueprinter-activerecord'
   spec.metadata['changelog_uri'] = 'https://github.com/procore-oss/blueprinter-activerecord/CHANGELOG.md'
+  spec.metadata['allowed_push_host'] = 'https://rubygems.org'
+  spec.metadata['rubygems_mfa_required'] = 'true'
 
   spec.files = Dir['lib/**/*']
   spec.require_paths = ['lib']
