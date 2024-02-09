@@ -26,4 +26,4 @@ jobs:
       - name: Installing dependencies
         run: bundle check --path=vendor/bundle || bundle install --path=vendor/bundle
       - name: Run tests
-        run: bundle exec rake
+        run: bundle exec rake test
