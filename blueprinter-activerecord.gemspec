@@ -8,7 +8,7 @@ Gem::Specification.new do |spec|
   spec.authors = ['Procore Technologies, Inc.']
   spec.email = ['opensource@procore.com']
 
-  spec.summary = 'Extensions for using ActiveRecord with ActiveRecord'
+  spec.summary = 'Extensions for using Blueprinter with ActiveRecord'
   spec.description = 'Eager loading and other ActiveRecord helpers for Blueprinter'
   spec.homepage = 'https://github.com/procore-oss/blueprinter-activerecord'
   spec.license = 'MIT'
