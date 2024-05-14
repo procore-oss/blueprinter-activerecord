@@ -43,8 +43,9 @@ module BlueprinterActiveRecord
 
       if blueprint and view
         # preload right now
-        preloads = Preloader.preloads(blueprint, view, model)
-        public_send(use, preloads)
+        blueprint_preloads = Preloader.preloads(blueprint, view, model)
+        unified_preloads = Helpers.merge_values([*values[use], blueprint_preloads])
+        except(use).public_send(use, unified_preloads)
       else
         # preload during render
         @values[:preload_blueprint_method] = use

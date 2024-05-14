@@ -41,8 +41,9 @@ module BlueprinterActiveRecord
         if object.preload_blueprint_method || auto || auto_proc&.call(object, blueprint, view, options) == true
           object.before_preload_blueprint = extract_preloads object
           blueprint_preloads = self.class.preloads(blueprint, view, object.model)
+          unified_preloads = merge_values([*object.values[use], blueprint_preloads])
           loader = object.preload_blueprint_method || use
-          object.public_send(loader, blueprint_preloads)
+          object.except(loader).public_send(loader, unified_preloads)
         else
           object
         end
