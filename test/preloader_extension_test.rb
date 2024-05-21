@@ -108,6 +108,17 @@ class PreloaderExtensionTest < Minitest::Test
     assert_equal [{:battery1=>{:fake_assoc=>{}, :refurb_plan=>{}}, :battery2=>{:fake_assoc=>{}, :refurb_plan=>{}}, :category=>{}, :project=>{:customer=>{}}}], q.values[:preload]
   end
 
+  def test_blueprinter_preload_now_with_existing_preloads
+    q = Widget.
+      where("widgets.name <> ?", "Widget C").
+      order(:name).
+      preload({battery1: :refurb_plan}).
+      preload_blueprint(WidgetBlueprint, :no_power).
+      strict_loading
+
+    assert_equal({:battery1=>{:refurb_plan=>{}}, :category=>{}, :project=>{:customer=>{}}}, BlueprinterActiveRecord::Helpers.merge_values(q.values[:preload]))
+  end
+
   def test_auto_preload
     ext = BlueprinterActiveRecord::Preloader.new(auto: true)
     q = Widget.
@@ -119,6 +130,20 @@ class PreloaderExtensionTest < Minitest::Test
     assert ext.auto
     assert_equal :preload, ext.use
     assert_equal [{:battery1=>{:fake_assoc=>{}, :refurb_plan=>{}}, :battery2=>{:fake_assoc=>{}, :refurb_plan=>{}}, :category=>{}, :project=>{:customer=>{}}}], q.values[:preload]
+  end
+
+  def test_auto_preload_with_existing_preloads
+    ext = BlueprinterActiveRecord::Preloader.new(auto: true)
+    q = Widget.
+      where("name <> ?", "Widget C").
+      order(:name).
+      preload({battery1: :refurb_plan}).
+      strict_loading
+    q = ext.pre_render(q, WidgetBlueprint, :no_power, {})
+
+    assert ext.auto
+    assert_equal :preload, ext.use
+    assert_equal({:battery1=>{:refurb_plan=>{}}, :category=>{}, :project=>{:customer=>{}}}, BlueprinterActiveRecord::Helpers.merge_values(q.values[:preload]))
   end
 
   def test_auto_preload_with_block_true
