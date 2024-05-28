@@ -28,8 +28,9 @@ module BlueprinterActiveRecord
 
     #
     # Implements the "pre_render" Blueprinter Extension to preload associations from a view.
-    # If auto is true, all ActiveRecord::Relation objects will be preloaded. If auto is false,
-    # only queries that have called `.preload_blueprint` will be preloaded.
+    # If auto is true, all ActiveRecord::Relation and ActiveRecord::AssociationRelation objects
+    # will be preloaded. If auto is false, only queries that have called `.preload_blueprint`
+    # will be preloaded.
     #
     # NOTE: If auto is on, *don't* be concerned that you'll end up with duplicate preloads. Even if
     # the query ends up with overlapping members in 'preload' and 'includes', ActiveRecord
@@ -37,7 +38,7 @@ module BlueprinterActiveRecord
     #
     def pre_render(object, blueprint, view, options)
       case object.class.name
-      when "ActiveRecord::Relation"
+      when "ActiveRecord::Relation", "ActiveRecord::AssociationRelation"
         if object.preload_blueprint_method || auto || auto_proc&.call(object, blueprint, view, options) == true
           object.before_preload_blueprint = extract_preloads object
           blueprint_preloads = self.class.preloads(blueprint, view, object.model)
