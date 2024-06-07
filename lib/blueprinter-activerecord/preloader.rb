@@ -57,6 +57,10 @@ module BlueprinterActiveRecord
     #
     # Returns an ActiveRecord preload plan extracted from the Blueprint and view (recursive).
     #
+    # Preloads are found when one of the model's associations matches:
+    # 1. A Blueprint association name.
+    # 2. A :preload option on a field or association.
+    #
     # Example:
     #
     #   preloads = BlueprinterActiveRecord::Preloader.preloads(WidgetBlueprint, :extended, Widget)
@@ -69,11 +73,24 @@ module BlueprinterActiveRecord
     #
     def self.preloads(blueprint, view_name, model=nil)
       view = blueprint.reflections.fetch(view_name)
-      view.associations.each_with_object({}) { |(_name, assoc), acc|
+      preload_vals = view.associations.each_with_object({}) { |(_name, assoc), acc|
+        # look for a matching association on the model
         ref = model ? model.reflections[assoc.name.to_s] : nil
         if (ref || model.nil?) && !assoc.blueprint.is_a?(Proc)
           ref_model = ref && !(ref.belongs_to? && ref.polymorphic?) ? ref.klass : nil
           acc[assoc.name] = preloads(assoc.blueprint, assoc.view, ref_model)
+        end
+
+        # look for a :preload option on the association
+        if (custom = assoc.options[:preload])
+          Helpers.merge_values custom, acc
+        end
+      }
+
+      # look for a :preload options on fields
+      view.fields.each_with_object(preload_vals) { |(_name, field), acc|
+        if (custom = field.options[:preload])
+          Helpers.merge_values custom, acc
         end
       }
     end
