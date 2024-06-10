@@ -66,7 +66,7 @@ If you'd prefer to use `includes` or `eager_load` rather than `preload`, pass th
 
 ## Annotations
 
-Some associations may be "hidden" inside methods or field blocks, requiring you to annotate your Blueprints.
+Sometimes a field in your blueprint is a method or block. This extension can't "see" into methods or blocks, meaning it can't preload any associations inside. In these cases, annotate your blueprint so the extension knows what to preload.
 
 ```ruby
 # Here is a model with some instance methods
@@ -80,24 +80,22 @@ class Widget < ActiveRecord::Base
     # I'm calling the "parts" association, but the caller won't know!
     parts.map(&:description).join(", ")
   end
-
-  # Or this one
-  def owner_address
-    project.owner ? project.owner.address.to_s : project.company.address
-  end
 end
 
 # Here's a Blueprint with one association, two annotated fields, and one annotated association
 class WidgetBlueprint < Blueprinter::Base
+  # This association will be automatically preloaded
   association :category, blueprint: CategoryBlueprint
 
   # Blueprinter can't see the "parts" association being used here, so we annotate it
   field :parts_description, preload: :parts
 
   # Your annotations can be as complex as needed
-  field :owner_address, preload: {project: [:company, {owner: :address}]}
+  field :owner_address, preload: {project: [:company, {owner: :address}]} do |widget|
+    widget.project.owner ? widget.project.owner.address.to_s : widget.project.company.address
+  end
 
-  # You can annotate association blocks, too
+  # You can annotate association blocks, too. "parts" is preloaded automatically.
   association :parts, blueprint: PartBlueprint, preload: :draft_parts do |widget|
     widget.parts + widget.draft_parts
   end
