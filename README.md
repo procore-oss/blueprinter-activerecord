@@ -64,6 +64,44 @@ If you'd prefer to use `includes` or `eager_load` rather than `preload`, pass th
   preload_blueprint(use: :includes)
 ```
 
+## Annotations
+
+Sometimes a field in your blueprint is a method or block. This extension can't "see" into methods or blocks, meaning it can't preload any associations inside. In these cases, annotate your blueprint so the extension knows what to preload.
+
+```ruby
+# Here is a model with some instance methods
+class Widget < ActiveRecord::Base
+  belongs_to :category
+  belongs_to :project
+  has_many :parts
+
+  # Blueprinter can't see what this method is calling
+  def parts_description
+    # I'm calling the "parts" association, but the caller won't know!
+    parts.map(&:description).join(", ")
+  end
+end
+
+# Here's a Blueprint with one association, two annotated fields, and one annotated association
+class WidgetBlueprint < Blueprinter::Base
+  # This association will be automatically preloaded
+  association :category, blueprint: CategoryBlueprint
+
+  # Blueprinter can't see the "parts" association being used here, so we annotate it
+  field :parts_description, preload: :parts
+
+  # Your annotations can be as complex as needed
+  field :owner_address, preload: {project: [:company, {owner: :address}]} do |widget|
+    widget.project.owner ? widget.project.owner.address.to_s : widget.project.company.address
+  end
+
+  # You can annotate association blocks, too. "parts" is preloaded automatically.
+  association :parts, blueprint: PartBlueprint, preload: :draft_parts do |widget|
+    widget.parts + widget.draft_parts
+  end
+end
+```
+
 ## Notes on use
 
 ### Pass the *query* to render, not query *results*
@@ -92,40 +130,14 @@ do_something widgets
 WidgetBlueprint.render(widgets, view: :extended)
 ```
 
-### Look out for hidden associations
+### Use strict_loading to find hidden associations
 
-*blueprinter-activerecord* may feel magical, but it's not magic. Some associations may be "hidden" and you'll need to preload them the old-fashioned way.
+Rails 6.1 added support for `strict_loading`. Depending on your configuration, it will either raise exceptions or log warnings if a query triggers any lazy loading. Very useful for catching "hidden" associations.
 
 ```ruby
-# Here's a Blueprint with one association and one field
-class WidgetBlueprint < Blueprinter::Base
-  association :category, blueprint: CategoryBlueprint
-  field :parts_description
-  ...
-end
-
-class Widget < ActiveRecord::Base
-  belongs_to :category
-  has_many :parts
-
-  # The field is this instance method, and Blueprinter can't see inside it
-  def parts_description
-    # I'm calling the "parts" association but no one knows!
-    parts.map(&:description).join(", ")
-  end
-end
-
-q = Widget.where(...).order(...).
-  # Since "category" is declared in the Blueprint, it will automatically be preloaded during "render".
-  # But because "parts" is hidden inside of a method call, we must manually preload it.
-  preload(:parts).
-  # catch any other hidden associations
-  strict_loading
-
-WidgetBlueprint.render(q)
+widgets = Widget.where(...).strict_loading
+WidgetBlueprint.render(widgets)
 ```
-
-Rails 6.1 added support for `strict_loading`. Depending on your configuration, it will either raise exceptions or log warnings if a query triggers any lazy loading. Very useful for catching any associations Blueprinter can't see.
 
 ## Logging
 
