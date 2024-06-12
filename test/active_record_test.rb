@@ -62,4 +62,12 @@ class ActiveRecordTest < Minitest::Test
     assert_match(/FROM "widgets"/, lines[1])
     assert_nil lines[2]
   end
+
+  def test_invalid_associations_throw
+    assert_raises { Widget.preload(foo).to_a }
+  end
+
+  def test_invalid_associations_under_polymorphic_works
+    Widget.preload(battery1: {foo: :bar}).to_a
+  end
 end

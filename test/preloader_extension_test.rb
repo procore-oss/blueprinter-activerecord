@@ -105,7 +105,7 @@ class PreloaderExtensionTest < Minitest::Test
       preload_blueprint(WidgetBlueprint, :extended).
       strict_loading
 
-    assert_equal [{:battery1=>{:fake_assoc=>{}, :refurb_plan=>{}}, :battery2=>{:fake_assoc=>{}, :refurb_plan=>{}}, :category=>{}, :project=>{:customer=>{}}}], q.values[:preload]
+    assert_equal [{:battery1=>{:fake_assoc=>{}, :fake_assoc2=>{}, :refurb_plan=>{}}, :battery2=>{:fake_assoc=>{}, :fake_assoc2=>{}, :refurb_plan=>{}}, :category=>{}, :project=>{:customer=>{}}}], q.values[:preload]
   end
 
   def test_blueprinter_preload_now_with_existing_preloads
@@ -129,7 +129,7 @@ class PreloaderExtensionTest < Minitest::Test
 
     assert ext.auto
     assert_equal :preload, ext.use
-    assert_equal [{:battery1=>{:fake_assoc=>{}, :refurb_plan=>{}}, :battery2=>{:fake_assoc=>{}, :refurb_plan=>{}}, :category=>{}, :project=>{:customer=>{}}}], q.values[:preload]
+    assert_equal [{:battery1=>{:fake_assoc=>{}, :fake_assoc2=>{}, :refurb_plan=>{}}, :battery2=>{:fake_assoc=>{}, :fake_assoc2=>{}, :refurb_plan=>{}}, :category=>{}, :project=>{:customer=>{}}}], q.values[:preload]
   end
 
   def test_auto_preload_with_existing_preloads
@@ -153,7 +153,7 @@ class PreloaderExtensionTest < Minitest::Test
 
     assert ext.auto
     assert_equal :preload, ext.use
-    assert_equal [{:battery1=>{:fake_assoc=>{}, :refurb_plan=>{}}, :battery2=>{:fake_assoc=>{}, :refurb_plan=>{}}, :category=>{}, :project=>{:customer=>{}}}], q.values[:preload]
+    assert_equal [{:battery1=>{:fake_assoc=>{}, :fake_assoc2=>{}, :refurb_plan=>{}}, :battery2=>{:fake_assoc=>{}, :fake_assoc2=>{}, :refurb_plan=>{}}, :category=>{}, :project=>{:customer=>{}}}], q.values[:preload]
   end
 
   def test_auto_preload_with_block_true
@@ -166,7 +166,7 @@ class PreloaderExtensionTest < Minitest::Test
 
     refute_nil ext.auto_proc
     assert_equal :preload, ext.use
-    assert_equal [{:battery1=>{:fake_assoc=>{}, :refurb_plan=>{}}, :battery2=>{:fake_assoc=>{}, :refurb_plan=>{}}, :category=>{}, :project=>{:customer=>{}}}], q.values[:preload]
+    assert_equal [{:battery1=>{:fake_assoc=>{}, :fake_assoc2=>{}, :refurb_plan=>{}}, :battery2=>{:fake_assoc=>{}, :fake_assoc2=>{}, :refurb_plan=>{}}, :category=>{}, :project=>{:customer=>{}}}], q.values[:preload]
   end
 
   def test_auto_preload_with_block_false
@@ -192,6 +192,6 @@ class PreloaderExtensionTest < Minitest::Test
 
     assert ext.auto
     assert_equal :includes, ext.use
-    assert_equal [{:battery1=>{:fake_assoc=>{}, :refurb_plan=>{}}, :battery2=>{:fake_assoc=>{}, :refurb_plan=>{}}, :category=>{}, :project=>{:customer=>{}}}], q.values[:includes]
+    assert_equal [{:battery1=>{:fake_assoc=>{}, :fake_assoc2=>{}, :refurb_plan=>{}}, :battery2=>{:fake_assoc=>{}, :fake_assoc2=>{}, :refurb_plan=>{}}, :category=>{}, :project=>{:customer=>{}}}], q.values[:includes]
   end
 end
