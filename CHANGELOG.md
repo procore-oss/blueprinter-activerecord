@@ -1,3 +1,6 @@
+### 1.1.0 (2024-06-10)
+- [FEATURE] Ability to annotate a field or association for extra preloads (e.g. `field :category_name, preload: :category`)
+
 ### 1.0.2 (2024-05-21)
 
 - [BUGFIX] Fixes a potentially significant performance issue with `auto`. See https://github.com/procore-oss/blueprinter-activerecord/pull/16.
