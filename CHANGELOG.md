@@ -1,4 +1,12 @@
+### 1.2.0 (2024-06-26)
+
+- [BUGFIX] Fixes an issue where an association wouldn't be preloaded if it used a dynamic blueprint.
+- [BUGFIX] Fixes an infinite loop when [a Blueprint has an association to itself](https://github.com/procore-oss/blueprinter-activerecord/issues/13).
+- Added the `max_recursion` option to customize the new default behavior for recursive/cyclic blueprints.
+- Make `pre_render` compatible with all children of ActiveRecord::Relation ([#28](https://github.com/procore-oss/blueprinter-activerecord/pull/28)).
+
 ### 1.1.0 (2024-06-10)
+
 - [FEATURE] Ability to annotate a field or association for extra preloads (e.g. `field :category_name, preload: :category`)
 
 ### 1.0.2 (2024-05-21)
