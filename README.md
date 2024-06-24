@@ -118,6 +118,13 @@ widgets = Widget.where(...)
 WidgetBlueprint.render(widgets, view: :extended)
 ```
 
+The query can also be an ActiveRecord::Associations::CollectionProxy:
+
+```ruby
+  project = Project.find(...)
+  WidgetBlueprint.render(project.widgets, view: :extended)
+```
+
 If you **must** run the query first, there is a way:
 
 ```ruby
