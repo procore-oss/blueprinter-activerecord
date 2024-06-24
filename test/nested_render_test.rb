@@ -48,7 +48,7 @@ class NestedRenderTest < Minitest::Test
   end
 
   def test_queries_for_collection_proxies
-    ProjectBlueprint.render(@test_customer.projects.strict_loading, view: :extended_plus_with_widgets)
+    ProjectBlueprint.render(@test_customer.projects, view: :extended_plus_with_widgets)
     assert_equal [
       'SELECT "projects".* FROM "projects" WHERE "projects"."customer_id" = ?',
       'SELECT "widgets".* FROM "widgets" WHERE "widgets"."project_id" IN (?, ?)'
