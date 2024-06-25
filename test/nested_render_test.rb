@@ -9,6 +9,7 @@ class NestedRenderTest < Minitest::Test
     customer2 = Customer.create!(name: "FOO")
     project1 = Project.create!(customer_id: customer1.id, name: "Project A")
     project2 = Project.create!(customer_id: customer2.id, name: "Project B")
+    project3 = Project.create!(customer_id: customer2.id, name: "Project C")
     category1 = Category.create!(name: "Foo")
     category2 = Category.create!(name: "Bar")
     ref_plan = RefurbPlan.create!(name: "Plan A")
@@ -17,6 +18,7 @@ class NestedRenderTest < Minitest::Test
     Widget.create!(customer_id: customer1.id, project_id: project1.id, category_id: category1.id, name: "Widget A", battery1: battery1, battery2: battery2)
     Widget.create!(customer_id: customer1.id, project_id: project1.id, category_id: category2.id, name: "Widget B", battery1: battery1)
     Widget.create!(customer_id: customer2.id, project_id: project2.id, category_id: category1.id, name: "Widget C", battery1: battery1)
+    Widget.create!(customer_id: customer2.id, project_id: project3.id, category_id: category1.id, name: "Widget C", battery1: battery1)
     Blueprinter.configure do |config|
       config.extensions << BlueprinterActiveRecord::Preloader.new(auto: true)
     end
@@ -24,6 +26,7 @@ class NestedRenderTest < Minitest::Test
     @sub = ActiveSupport::Notifications.subscribe 'sql.active_record' do |_name, _started, _finished, _uid, data|
       @queries << data.fetch(:sql)
     end
+    @test_customer = customer2
   end
 
   def teardown
@@ -40,7 +43,15 @@ class NestedRenderTest < Minitest::Test
     assert_equal [
       'SELECT "projects".* FROM "projects"',
       'SELECT "customers".* FROM "customers" WHERE "customers"."id" IN (?, ?)',
-      'SELECT "widgets".* FROM "widgets" WHERE "widgets"."project_id" IN (?, ?)',
+      'SELECT "widgets".* FROM "widgets" WHERE "widgets"."project_id" IN (?, ?, ?)',
+    ], @queries
+  end
+
+  def test_queries_for_collection_proxies
+    ProjectBlueprint.render(@test_customer.projects, view: :extended_plus_with_widgets)
+    assert_equal [
+      'SELECT "projects".* FROM "projects" WHERE "projects"."customer_id" = ?',
+      'SELECT "widgets".* FROM "widgets" WHERE "widgets"."project_id" IN (?, ?)'
     ], @queries
   end
 
@@ -60,7 +71,7 @@ class NestedRenderTest < Minitest::Test
     project_blueprint.render(q)
     assert_equal [
       'SELECT "projects".* FROM "projects"',
-      'SELECT "widgets".* FROM "widgets" WHERE "widgets"."project_id" IN (?, ?)',
+      'SELECT "widgets".* FROM "widgets" WHERE "widgets"."project_id" IN (?, ?, ?)',
       'SELECT "categories".* FROM "categories" WHERE "categories"."id" IN (?, ?)',
       'SELECT "customers".* FROM "customers" WHERE "customers"."id" IN (?, ?)',
     ], @queries
