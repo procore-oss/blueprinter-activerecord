@@ -29,6 +29,14 @@ class CategoryBlueprint < Blueprinter::Base
   view :extended do
     fields :id, :name, :description
   end
+
+  view :nested do
+    association :children, blueprint: CategoryBlueprint, view: :nested
+  end
+
+  view :cyclic do
+    association :widgets, blueprint: WidgetBlueprint, view: :cyclic
+  end
 end
 
 class RefurbPlanBlueprint < Blueprinter::Base
@@ -84,5 +92,12 @@ class WidgetBlueprint < Blueprinter::Base
     association :category, blueprint: CategoryBlueprint, view: :extended
     association :project, blueprint: ProjectBlueprint, view: :extended
   end
-end
 
+  view :cyclic do
+    association :category, blueprint: CategoryBlueprint, view: :cyclic
+  end
+
+  view :dynamic do
+    association :category, blueprint: -> { CategoryBlueprint }
+  end
+end

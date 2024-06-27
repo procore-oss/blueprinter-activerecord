@@ -24,7 +24,7 @@ class NestedRenderTest < Minitest::Test
     end
     @queries = []
     @sub = ActiveSupport::Notifications.subscribe 'sql.active_record' do |_name, _started, _finished, _uid, data|
-      @queries << data.fetch(:sql)
+      @queries << [data.fetch(:sql), data.fetch(:type_casted_binds)]
     end
     @test_customer = customer2
   end
@@ -44,7 +44,7 @@ class NestedRenderTest < Minitest::Test
       'SELECT "projects".* FROM "projects"',
       'SELECT "customers".* FROM "customers" WHERE "customers"."id" IN (?, ?)',
       'SELECT "widgets".* FROM "widgets" WHERE "widgets"."project_id" IN (?, ?, ?)',
-    ], @queries
+    ], @queries.map(&:first)
   end
 
   def test_queries_for_collection_proxies
@@ -52,7 +52,7 @@ class NestedRenderTest < Minitest::Test
     assert_equal [
       'SELECT "projects".* FROM "projects" WHERE "projects"."customer_id" = ?',
       'SELECT "widgets".* FROM "widgets" WHERE "widgets"."project_id" IN (?, ?)'
-    ], @queries
+    ], @queries.map(&:first)
   end
 
   def test_queries_with_auto_and_nested_render_and_manual_preloads
@@ -74,6 +74,38 @@ class NestedRenderTest < Minitest::Test
       'SELECT "widgets".* FROM "widgets" WHERE "widgets"."project_id" IN (?, ?, ?)',
       'SELECT "categories".* FROM "categories" WHERE "categories"."id" IN (?, ?)',
       'SELECT "customers".* FROM "customers" WHERE "customers"."id" IN (?, ?)',
-    ], @queries
+    ], @queries.map(&:first)
+  end
+
+  def test_preload_with_recursive_association_default_max
+    cat = Category.create!(name: "A")
+
+    cat2 = Category.create!(name: "B", parent_id: cat.id)
+    cat3 = Category.create!(name: "B", parent_id: cat.id)
+
+    cat4 = Category.create!(name: "C", parent_id: cat2.id)
+    cat5 = Category.create!(name: "C", parent_id: cat2.id)
+    cat6 = Category.create!(name: "C", parent_id: cat3.id)
+    cat7 = Category.create!(name: "C", parent_id: cat3.id)
+
+    cat8 = Category.create!(name: "D", parent_id: cat4.id)
+    cat9 = Category.create!(name: "D", parent_id: cat4.id)
+    cat10 = Category.create!(name: "D", parent_id: cat5.id)
+    cat11 = Category.create!(name: "D", parent_id: cat5.id)
+    cat12 = Category.create!(name: "D", parent_id: cat6.id)
+    cat13 = Category.create!(name: "D", parent_id: cat6.id)
+    cat14 = Category.create!(name: "D", parent_id: cat7.id)
+    cat15 = Category.create!(name: "D", parent_id: cat7.id)
+    @queries.clear
+
+    CategoryBlueprint.render(cat, view: :nested)
+    assert_equal [
+      %Q|SELECT "categories".* FROM "categories" WHERE "categories"."parent_id" = #{cat.id}|,
+      %Q|SELECT "categories".* FROM "categories" WHERE "categories"."parent_id" IN (#{cat2.id}, #{cat3.id})|,
+      %Q|SELECT "categories".* FROM "categories" WHERE "categories"."parent_id" IN (#{cat4.id}, #{cat5.id}, #{cat6.id}, #{cat7.id})|,
+      %Q|SELECT "categories".* FROM "categories" WHERE "categories"."parent_id" IN (#{cat8.id}, #{cat9.id}, #{cat10.id}, #{cat11.id}, #{cat12.id}, #{cat13.id}, #{cat14.id}, #{cat15.id})|,
+    ], @queries.map { |(sql, binds)|
+      binds.reduce(sql) { |acc, bind| acc.sub("?", bind.to_s) }
+    }
   end
 end
