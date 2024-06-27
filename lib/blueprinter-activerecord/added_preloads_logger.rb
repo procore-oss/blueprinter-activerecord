@@ -42,7 +42,7 @@ module BlueprinterActiveRecord
     def pre_render(object, blueprint, view, options)
       if object.is_a?(ActiveRecord::Relation) && object.before_preload_blueprint
         from_code = object.before_preload_blueprint
-        from_blueprint = Preloader.preloads(blueprint, view, object.model)
+        from_blueprint = Preloader.preloads(blueprint, view, model: object.model)
         info = PreloadInfo.new(object, from_code, from_blueprint, caller)
         @log_proc&.call(info)
       end

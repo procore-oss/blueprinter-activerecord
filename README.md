@@ -102,6 +102,28 @@ class WidgetBlueprint < Blueprinter::Base
 end
 ```
 
+## Recursive Blueprints
+
+Sometimes a model, and its blueprint, will have recursive associations. Think of a nested Category model:
+
+```ruby
+class Category < ApplicationRecord
+  belongs_to :parent, class_name: "Category", optional: true
+  has_many :children, foreign_key: :parent_id, class_name: "Category", inverse_of: :parent
+end
+
+class CategoryBlueprint < Blueprinter::Base
+  field :name
+  association :children, blueprint: CategoryBlueprint
+end
+```
+
+For these kinds of recursive blueprints, the extension will preload up to 10 levels deep by default. If this isn't enough, you can increase it:
+
+```ruby
+association :children, blueprint: CategoryBlueprint, max_recursion: 20
+```
+
 ## Notes on use
 
 ### Pass the *query* to render, not query *results*
@@ -116,6 +138,13 @@ WidgetBlueprint.render(widgets, view: :extended)
 # Yay! :)
 widgets = Widget.where(...)
 WidgetBlueprint.render(widgets, view: :extended)
+```
+
+The query can also be an ActiveRecord::Associations::CollectionProxy:
+
+```ruby
+  project = Project.find(...)
+  WidgetBlueprint.render(project.widgets, view: :extended)
 ```
 
 If you **must** run the query first, there is a way:

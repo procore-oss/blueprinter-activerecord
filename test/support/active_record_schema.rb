@@ -15,6 +15,7 @@ module Schema
 
       create_table :categories do |t|
         t.string :name, null: false
+        t.integer :parent_id
         t.text :description
       end
 

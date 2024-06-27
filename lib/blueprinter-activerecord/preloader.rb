@@ -4,6 +4,7 @@ module BlueprinterActiveRecord
   # A Blueprinter extension to automatically preload a Blueprint view's ActiveRecord associations during render
   class Preloader < Blueprinter::Extension
     include Helpers
+    DEFAULT_MAX_RECURSION = 10
 
     attr_reader :use, :auto, :auto_proc
 
@@ -37,11 +38,10 @@ module BlueprinterActiveRecord
     # intelligently handles them. There are several unit tests which confirm this behavior.
     #
     def pre_render(object, blueprint, view, options)
-      case object.class.name
-      when "ActiveRecord::Relation", "ActiveRecord::AssociationRelation"
+      if object.is_a?(ActiveRecord::Relation) && !object.loaded?
         if object.preload_blueprint_method || auto || auto_proc&.call(object, blueprint, view, options) == true
           object.before_preload_blueprint = extract_preloads object
-          blueprint_preloads = self.class.preloads(blueprint, view, object.model)
+          blueprint_preloads = self.class.preloads(blueprint, view, model: object.model)
           loader = object.preload_blueprint_method || use
           object.public_send(loader, blueprint_preloads)
         else
@@ -63,22 +63,21 @@ module BlueprinterActiveRecord
     #
     # Example:
     #
-    #   preloads = BlueprinterActiveRecord::Preloader.preloads(WidgetBlueprint, :extended, Widget)
+    #   preloads = BlueprinterActiveRecord::Preloader.preloads(WidgetBlueprint, :extended, model: Widget)
     #   q = Widget.where(...).order(...).preload(preloads)
     #
     # @param blueprint [Class] The Blueprint class
     # @param view_name [Symbol] Name of the view in blueprint
-    # @param model [Class] The ActiveRecord model class that blueprint represents
+    # @param model [Class|:polymorphic] The ActiveRecord model class that blueprint represents
+    # @param cycles [Hash<String, Integer>] (internal) Preloading will halt if recursion/cycles gets too high
     # @return [Hash] A Hash containing preload/eager_load/etc info for ActiveRecord
     #
-    def self.preloads(blueprint, view_name, model=nil)
+    def self.preloads(blueprint, view_name, model:, cycles: {})
       view = blueprint.reflections.fetch(view_name)
       preload_vals = view.associations.each_with_object({}) { |(_name, assoc), acc|
         # look for a matching association on the model
-        ref = model ? model.reflections[assoc.name.to_s] : nil
-        if (ref || model.nil?) && !assoc.blueprint.is_a?(Proc)
-          ref_model = ref && !(ref.belongs_to? && ref.polymorphic?) ? ref.klass : nil
-          acc[assoc.name] = preloads(assoc.blueprint, assoc.view, ref_model)
+        if (preload = association_preloads(assoc, model, cycles))
+          acc[assoc.name] = preload
         end
 
         # look for a :preload option on the association
@@ -93,6 +92,39 @@ module BlueprinterActiveRecord
           Helpers.merge_values custom, acc
         end
       }
+    end
+
+    def self.association_preloads(assoc, model, cycles)
+      max_cycles = assoc.options.fetch(:max_recursion, DEFAULT_MAX_RECURSION)
+      if model == :polymorphic
+        if assoc.blueprint.is_a? Proc
+          {}
+        else
+          cycles, count = count_cycles(assoc.blueprint, assoc.view, cycles)
+          count < max_cycles ? preloads(assoc.blueprint, assoc.view, model: model, cycles: cycles) : {}
+        end
+      elsif (ref = model.reflections[assoc.name.to_s])
+        if assoc.blueprint.is_a? Proc
+          {}
+        elsif ref.belongs_to? && ref.polymorphic?
+          cycles, count = count_cycles(assoc.blueprint, assoc.view, cycles)
+          count < max_cycles ? preloads(assoc.blueprint, assoc.view, model: :polymorphic, cycles: cycles) : {}
+        else
+          cycles, count = count_cycles(assoc.blueprint, assoc.view, cycles)
+          count < max_cycles ? preloads(assoc.blueprint, assoc.view, model: ref.klass, cycles: cycles) : {}
+        end
+      end
+    end
+
+    def self.count_cycles(blueprint, view, cycles)
+      id = "#{blueprint.name || blueprint.inspect}/#{view}"
+      cycles = cycles.dup
+      if cycles[id].nil?
+        cycles[id] = 0
+      else
+        cycles[id] += 1
+      end
+      return cycles, cycles[id]
     end
   end
 end

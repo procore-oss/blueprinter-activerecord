@@ -16,8 +16,8 @@ class AddedPreloadsLoggerTest < Minitest::Test
 
     assert_equal({
       :category=>{},
-      :battery1=>{:fake_assoc=>{}, :refurb_plan=>{}},
-      :battery2=>{:fake_assoc=>{}, :refurb_plan=>{}},
+      :battery1=>{:fake_assoc=>{}, :fake_assoc2=>{}, :refurb_plan=>{}},
+      :battery2=>{:fake_assoc=>{}, :fake_assoc2=>{}, :refurb_plan=>{}},
       :project=>{:customer=>{}},
     }, BlueprinterActiveRecord::Helpers.extract_preloads(q3))
 
@@ -27,14 +27,16 @@ class AddedPreloadsLoggerTest < Minitest::Test
     assert_equal [
       "battery1",
       "battery1 > fake_assoc",
+      "battery1 > fake_assoc2",
       "battery1 > refurb_plan",
       "battery2",
       "battery2 > fake_assoc",
+      "battery2 > fake_assoc2",
       "battery2 > refurb_plan",
       "project",
       "project > customer",
     ], @info.found.map { |f| f.join " > " }
-    assert_equal 89, @info.percent_found
+    assert_equal 91, @info.percent_found
   end
 
   def test_finds_visible_blueprints

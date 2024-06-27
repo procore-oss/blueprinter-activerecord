@@ -14,7 +14,7 @@ namespace :blueprinter do
 
       model = args[:model].constantize
       blueprint = args[:blueprint].constantize
-      preloads = BlueprinterActiveRecord::Preloader.preloads(blueprint, args[:view].to_sym, model)
+      preloads = BlueprinterActiveRecord::Preloader.preloads(blueprint, args[:view].to_sym, model: model)
       puts pretty preloads
     end
   end
