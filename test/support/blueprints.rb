@@ -34,6 +34,10 @@ class CategoryBlueprint < Blueprinter::Base
     association :children, blueprint: CategoryBlueprint, view: :nested
   end
 
+  view :widgets do
+    association :widgets, blueprint: WidgetBlueprint
+  end
+
   view :cyclic do
     association :widgets, blueprint: WidgetBlueprint, view: :cyclic
   end

@@ -15,6 +15,7 @@ class Category < ActiveRecord::Base
   belongs_to :parent, class_name: "Category", optional: true
   has_many :children, foreign_key: :parent_id, class_name: "Category", inverse_of: :parent
   has_many :widgets
+  accepts_nested_attributes_for :widgets
 end
 
 class Widget < ActiveRecord::Base

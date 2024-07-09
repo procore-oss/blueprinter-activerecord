@@ -156,6 +156,34 @@ class PreloaderExtensionTest < Minitest::Test
     assert_equal [{:battery1=>{:fake_assoc=>{}, :fake_assoc2=>{}, :refurb_plan=>{}}, :battery2=>{:fake_assoc=>{}, :fake_assoc2=>{}, :refurb_plan=>{}}, :category=>{}, :project=>{:customer=>{}}}], q.values[:preload]
   end
 
+  def test_auto_preload_with_new_records
+    Blueprinter.configure do |config|
+      config.extensions = [BlueprinterActiveRecord::Preloader.new(auto: true)]
+    end
+
+    cat = Category.new(name: "asdf")
+    cat.widgets = [Widget.new(name: "A"), Widget.new(name: "B"), Widget.new(name: "C")]
+
+    assert_equal(
+      {id: nil, name: "asdf", widgets: [{id: nil, name: "A", price: nil}, {id: nil, name: "B", price: nil}, {id: nil, name: "C", price: nil}]},
+      CategoryBlueprint.render_as_hash(cat, view: :widgets)
+    )
+  end
+
+  def test_auto_preload_with_new_records_via_attributes
+    Blueprinter.configure do |config|
+      config.extensions = [BlueprinterActiveRecord::Preloader.new(auto: true)]
+    end
+
+    cat = Category.new(name: "asdf")
+    cat.widgets_attributes = [{name: "A"}, {name: "B"}, {name: "C"}]
+
+    assert_equal(
+      {id: nil, name: "asdf", widgets: [{id: nil, name: "A", price: nil}, {id: nil, name: "B", price: nil}, {id: nil, name: "C", price: nil}]},
+      CategoryBlueprint.render_as_hash(cat, view: :widgets)
+    )
+  end
+
   def test_auto_preload_with_block_true
     ext = BlueprinterActiveRecord::Preloader.new { |object| true }
     q = Widget.
