@@ -23,7 +23,7 @@ Gem::Specification.new do |spec|
   spec.files = Dir['lib/**/*']
   spec.require_paths = ['lib']
 
-  spec.add_runtime_dependency 'activerecord', ['>= 6.0', '< 7.2']
+  spec.add_runtime_dependency 'activerecord', '>= 6.0', '< 7.3'
   spec.add_runtime_dependency 'blueprinter', '~> 1.0'
 
   spec.add_development_dependency 'appraisal', '~> 2.5'
