@@ -18,9 +18,13 @@ In automatic mode, every query (`ActiveRecord::Relation`) passed to a Blueprint 
 Blueprinter.configure do |config|
   config.extensions << BlueprinterActiveRecord::Preloader.new(auto: true)
 end
+
+# Preloading will always happen during render
+widgets = Widget.where(...).order(...)
+json = WidgetBlueprint.render(widgets)
 ```
 
-If you'd prefer to use `includes` rather than `preload`, pass `use: :includes`.
+If you'd prefer to use `includes` rather than `preload`, pass `use: :includes` to the initializer.
 
 ### Dynamic mode
 
@@ -32,9 +36,14 @@ Blueprinter.configure do |config|
     # examine q, q.model, blueprint, view, or options and return true or false
   end
 end
+
+# If the above block returns true for q (widgets), preloading will happen during render
+widgets = Widget.where(...).order(...)
+json = WidgetBlueprint.render(widgets)
+
 ```
 
-If you'd prefer to use `includes` rather than `preload`, pass `use: :includes`.
+If you'd prefer to use `includes` rather than `preload`, pass `use: :includes` to the initializer.
 
 ### Manual mode
 
@@ -128,35 +137,31 @@ association :children, blueprint: CategoryBlueprint, max_recursion: 20
 
 ### Pass the *query* to render, not query *results*
 
-If the query runs before being passed to render, no preloading can take place.
+If the query runs _before_ being passed to `render`, it's too late for preloading to happen.
 
 ```ruby
-# Oops - the query already ran :(
-widgets = Widget.where(...).to_a
-WidgetBlueprint.render(widgets, view: :extended)
-
-# Yay! :)
 widgets = Widget.where(...)
+widgets.each { |widget| do_something wiget }
+# too late to preload b/c the query already ran :(
 WidgetBlueprint.render(widgets, view: :extended)
 ```
 
-The query can also be an ActiveRecord::Associations::CollectionProxy:
-
-```ruby
-  project = Project.find(...)
-  WidgetBlueprint.render(project.widgets, view: :extended)
-```
-
-If you **must** run the query first, there is a way:
+But sometimes you have no choice. In those cases, manually call `preload_blueprint` and pass it the Blueprint/view. Then preloading will happen as soon as the query runs.
 
 ```ruby
 widgets = Widget.
   where(...).
-  # preloading will happen HERE b/c we gave it all the info it needs
-  preload_blueprint(WidgetBlueprint, :extended).
-  to_a
-do_something widgets
+  preload_blueprint(WidgetBlueprint, :extended)
+# preloading will happen here, because it knows which Blueprint/view to look at
+widgets.each { |widget| do_something wiget }
 WidgetBlueprint.render(widgets, view: :extended)
+```
+
+### Also works for ActiveRecord::Associations::CollectionProxy
+
+```ruby
+project = Project.find(...)
+WidgetBlueprint.render(project.widgets, view: :extended)
 ```
 
 ### Use strict_loading to find hidden associations
