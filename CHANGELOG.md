@@ -1,3 +1,8 @@
+### 1.3.0 (2024-09-04)
+
+- Support ActiveRecord 7.2
+- Remove restrictions on future ActiveRecord versions
+
 ### 1.2.0 (2024-06-26)
 
 - [BUGFIX] Fixes an issue where an association wouldn't be preloaded if it used a dynamic blueprint.

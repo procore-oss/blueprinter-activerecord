@@ -7,11 +7,11 @@ on:
 permissions:
   contents: read
 jobs:
-  test:
+  test-current:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        ruby: ["3.0", "3.1", "3.2", "3.3"]
+        ruby: ["3.1", "3.2", "3.3"]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
@@ -26,3 +26,28 @@ jobs:
           bundle exec appraisal install --path=vendor/bundle
       - name: Run tests
         run: bundle exec appraisal rake test
+
+  test-3_0:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        ruby: ["3.0"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4
+      - name: Set up Ruby ${{ matrix.ruby }}
+        uses: ruby/setup-ruby@a6e6f86333f0a2523ece813039b8b4be04560854 # v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+          bundler-cache: true
+      - name: Installing dependencies
+        run: |
+          bundle check --path=vendor/bundle || bundle install --path=vendor/bundle
+          bundle exec appraisal ar-6.1 bundle install --path=vendor/bundle
+          bundle exec appraisal ar-7.0 bundle install --path=vendor/bundle
+          bundle exec appraisal ar-7.1 bundle install --path=vendor/bundle
+      - name: Run tests
+        run: |
+          bundle exec appraisal ar-6.1 rake test
+          bundle exec appraisal ar-7.0 rake test
+          bundle exec appraisal ar-7.1 rake test
