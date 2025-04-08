@@ -53,28 +53,3 @@ jobs:
           bundle exec appraisal ar-7.0 rake test
           bundle exec appraisal ar-7.1 rake test
           bundle exec appraisal ar-7.2 rake test
-
-  test-3_0:
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        ruby: ["3.0"]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      - name: Set up Ruby ${{ matrix.ruby }}
-        uses: ruby/setup-ruby@13e7a03dc3ac6c3798f4570bfead2aed4d96abfb # v1
-        with:
-          ruby-version: ${{ matrix.ruby }}
-          bundler-cache: true
-      - name: Installing dependencies
-        run: |
-          bundle check --path=vendor/bundle || bundle install --path=vendor/bundle
-          bundle exec appraisal ar-6.1 bundle install --path=vendor/bundle
-          bundle exec appraisal ar-7.0 bundle install --path=vendor/bundle
-          bundle exec appraisal ar-7.1 bundle install --path=vendor/bundle
-      - name: Run tests
-        run: |
-          bundle exec appraisal ar-6.1 rake test
-          bundle exec appraisal ar-7.0 rake test
-          bundle exec appraisal ar-7.1 rake test
