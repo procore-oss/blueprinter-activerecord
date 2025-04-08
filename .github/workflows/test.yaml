@@ -43,13 +43,9 @@ jobs:
       - name: Installing dependencies
         run: |
           bundle check --path=vendor/bundle || bundle install --path=vendor/bundle
-          bundle exec appraisal ar-6.1 bundle install --path=vendor/bundle
-          bundle exec appraisal ar-7.0 bundle install --path=vendor/bundle
           bundle exec appraisal ar-7.1 bundle install --path=vendor/bundle
           bundle exec appraisal ar-7.2 bundle install --path=vendor/bundle
       - name: Run tests
         run: |
-          bundle exec appraisal ar-6.1 rake test
-          bundle exec appraisal ar-7.0 rake test
           bundle exec appraisal ar-7.1 rake test
           bundle exec appraisal ar-7.2 rake test
