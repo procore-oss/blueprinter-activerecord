@@ -6,6 +6,7 @@ require 'active_record'
 module BlueprinterActiveRecord
   autoload :QueryMethods, 'blueprinter-activerecord/query_methods'
   autoload :Preloader, 'blueprinter-activerecord/preloader'
+  autoload :Preloads, 'blueprinter-activerecord/preloads'
   autoload :AddedPreloadsLogger, 'blueprinter-activerecord/added_preloads_logger'
   autoload :MissingPreloadsLogger, 'blueprinter-activerecord/missing_preloads_logger'
   autoload :PreloadInfo, 'blueprinter-activerecord/preload_info'
