@@ -2,7 +2,6 @@
 
 appraise "ar-8.0" do
   gem "activerecord", "~> 8.0.1"
-  gem "sqlite3", "~> 2.4.1"
 end
 
 appraise "ar-7.2" do
