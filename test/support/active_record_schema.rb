@@ -7,6 +7,11 @@ module Schema
         t.string :name, null: false
       end
 
+      create_table :companies do |t|
+        t.string :name, null: false
+        t.text :description
+      end
+
       create_table :projects do |t|
         t.integer :customer_id, null: false
         t.string :name, null: false
@@ -17,6 +22,7 @@ module Schema
         t.string :name, null: false
         t.integer :parent_id
         t.text :description
+        t.integer :company_id
       end
 
       create_table :widgets do |t|
@@ -30,10 +36,15 @@ module Schema
         t.string :battery1_type, null: false
         t.integer :battery2_id
         t.string :battery2_type
+        t.integer :supplier_id
+        t.string :location_building_code
+        t.string :location_room_number
       end
       add_foreign_key :widgets, :customers
       add_foreign_key :widgets, :projects
       add_foreign_key :widgets, :categories
+      # add_foreign_key :widgets, :vendors, column: :supplier_id
+      # add_foreign_key :widgets, :locations, column: :location_building, column: :location_room
 
       create_table :refurb_plans do |t|
         t.string :name, null: false
@@ -53,6 +64,18 @@ module Schema
         t.integer :num_other, null: false
       end
       add_foreign_key :li_ion_batteries, :refurb_plans
+
+      create_table :vendors do |t|
+        t.string :name, null: false
+        t.string :contact_email
+        t.text :description
+      end
+
+      create_table :locations do |t|
+        t.string :building_code, null: false
+        t.string :room_number, null: false
+        t.string :name
+      end
     end
   end
 end
