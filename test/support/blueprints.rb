@@ -101,3 +101,15 @@ class WidgetBlueprint < Blueprinter::Base
     association :category, blueprint: -> { CategoryBlueprint }
   end
 end
+
+class VendorBlueprint < Blueprinter::Base
+  fields :id, :name, :contact_email, :description
+end
+
+class LocationBlueprint < Blueprinter::Base
+  fields :building_code, :room_number, :name
+end
+
+class CompanyBlueprint < Blueprinter::Base
+  fields :id, :name, :description
+end
