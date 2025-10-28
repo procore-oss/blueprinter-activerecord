@@ -22,6 +22,9 @@ end
 # Preloading will always happen during render
 widgets = Widget.where(...).order(...)
 json = WidgetBlueprint.render(widgets)
+
+# ...unless you pass the preload option as false
+json = WidgetBlueprint.render(widgets, { preload: false })
 ```
 
 If you'd prefer to use `includes` rather than `preload`, pass `use: :includes` to the initializer.
