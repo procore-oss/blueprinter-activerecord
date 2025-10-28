@@ -33,12 +33,14 @@ module BlueprinterActiveRecord
     # will be preloaded. If auto is false, only queries that have called `.preload_blueprint`
     # will be preloaded.
     #
+    # The caller may skip auto preloading by passing { preload: false } as an option.
+    #
     # NOTE: If auto is on, *don't* be concerned that you'll end up with duplicate preloads. Even if
     # the query ends up with overlapping members in 'preload' and 'includes', ActiveRecord
     # intelligently handles them. There are several unit tests which confirm this behavior.
     #
     def pre_render(object, blueprint, view, options)
-      if object.is_a?(ActiveRecord::Relation) && !object.loaded?
+      if object.is_a?(ActiveRecord::Relation) && !object.loaded? && options[:preload] != false
         if object.preload_blueprint_method || auto || auto_proc&.call(object, blueprint, view, options) == true
           object.before_preload_blueprint = extract_preloads object
           blueprint_preloads = self.class.preloads(blueprint, view, model: object.model)

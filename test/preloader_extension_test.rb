@@ -132,6 +132,19 @@ class PreloaderExtensionTest < Minitest::Test
     assert_equal [{:battery1=>{:fake_assoc=>{}, :fake_assoc2=>{}, :refurb_plan=>{}}, :battery2=>{:fake_assoc=>{}, :fake_assoc2=>{}, :refurb_plan=>{}}, :category=>{}, :project=>{:customer=>{}}}], q.values[:preload]
   end
 
+  def test_skip_auto_preload
+    ext = BlueprinterActiveRecord::Preloader.new(auto: true)
+    q = Widget.
+      where("name <> ?", "Widget C").
+      order(:name).
+      strict_loading
+    q = ext.pre_render(q, WidgetBlueprint, :extended, { preload: false })
+
+    assert ext.auto
+    assert_equal :preload, ext.use
+    assert_nil q.values[:preload]
+  end
+
   def test_auto_preload_with_existing_preloads
     ext = BlueprinterActiveRecord::Preloader.new(auto: true)
     q = Widget.
