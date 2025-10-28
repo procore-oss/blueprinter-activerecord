@@ -1,5 +1,6 @@
-### NEXT (?)
+### 1.4.0 (2025-10-28)
 
+- Add `preload: false` option to skip auto preloading
 - Drop support for Ruby 3.0
 - Drop support for ActiveRecord 6.1 - 7.0
 
