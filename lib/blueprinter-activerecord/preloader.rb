@@ -29,21 +29,16 @@ module BlueprinterActiveRecord
         end
     end
 
-    # Tell Blueprinter (V2) to treat ActiveRecord::Relation objects like collections
-    def collection?(ctx)
-      ctx.object.is_a? ActiveRecord::Relation
-    end
-
     # Perform preloading for ActiveRecord::Relation objects (Blueprinter V2).
-    def input_collection(ctx)
-      object = ctx.object
-      return object unless object.is_a? ActiveRecord::Relation
-      return object unless object.preload_blueprint_method || auto || auto_proc&.call(ctx) == true
-
-      object.before_preload_blueprint = extract_preloads object
-      blueprint_preloads = Preloads::ApiV2.preloads(ctx.blueprint, model: object.model)
-      loader = object.preload_blueprint_method || use
-      object.public_send(loader, blueprint_preloads)
+    def around_result(ctx)
+      obj = ctx.object
+      if obj.is_a?(ActiveRecord::Relation) && preload?(ctx)
+        obj.before_preload_blueprint = extract_preloads obj
+        blueprint_preloads = Preloads::ApiV2.preloads(ctx.blueprint, model: obj.model)
+        loader = obj.preload_blueprint_method || use
+        ctx.object = obj.public_send(loader, blueprint_preloads)
+      end
+      yield ctx
     end
 
     #
@@ -69,6 +64,12 @@ module BlueprinterActiveRecord
       else
         object
       end
+    end
+
+    private
+
+    def preload?(ctx)
+      ctx.object.preload_blueprint_method || auto || auto_proc&.call(ctx) == true
     end
   end
 end
