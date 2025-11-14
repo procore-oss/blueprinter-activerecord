@@ -31,12 +31,15 @@ module BlueprinterActiveRecord
 
     # Perform preloading for ActiveRecord::Relation objects (Blueprinter V2).
     def around_result(ctx)
-      if ctx.obj.is_a?(ActiveRecord::Relation) && preload?(ctx)
-        obj = ctx.object
-        obj.before_preload_blueprint = extract_preloads obj
-        blueprint_preloads = Preloads::ApiV2.preloads(ctx.blueprint, model: obj.model)
+      obj = ctx.object
+      if obj.is_a?(ActiveRecord::Relation) && (preload?(ctx) || obj.preload_blueprint_method)
         loader = obj.preload_blueprint_method || use
-        ctx.object = obj.public_send(loader, blueprint_preloads)
+        obj.before_preload_blueprint = extract_preloads obj
+        preloads = Preloads::ApiV2.preloads(ctx.blueprint.class, model: obj.model)
+        ctx.object = obj.public_send(loader, preloads)
+      elsif obj.is_a?(ActiveRecord::Base) && preload?(ctx)
+        preloads = Preloads::ApiV2.preloads(ctx.blueprint.class, model: obj.class)
+        Preloads::ApiV2.preload_into(obj, preloads)
       end
       yield ctx
     end
@@ -68,8 +71,6 @@ module BlueprinterActiveRecord
 
     private
 
-    def preload?(ctx)
-      ctx.object.preload_blueprint_method || auto || auto_proc&.call(ctx) == true
-    end
+    def preload?(ctx) = auto || auto_proc&.call(ctx) == true
   end
 end

@@ -107,6 +107,22 @@ class PreloadsApiV1Test < Minitest::Test
     assert_equal({category: {}}, preloads)
   end
 
+  def test_v2_interop
+    widget_blueprint = Class.new(Blueprinter::Base) do
+      association :category, blueprint: CategoryBlueprintV2
+    end
+    preloads = BlueprinterActiveRecord::Preloads::ApiV1.preloads(widget_blueprint, :default, model: Widget)
+    assert_equal({ category: {} }, preloads)
+  end
+
+  def test_v2_interop_with_view_option
+    widget_blueprint = Class.new(Blueprinter::Base) do
+      association :category, blueprint: CategoryBlueprintV2, view: :extended
+    end
+    preloads = BlueprinterActiveRecord::Preloads::ApiV1.preloads(widget_blueprint, :default, model: Widget)
+    assert_equal({ category: {} }, preloads)
+  end
+
   def test_cycle_detection1
     cycles, count = BlueprinterActiveRecord::Preloads::ApiV1.count_cycles(CategoryBlueprint, :default, {})
     assert_equal({"CategoryBlueprint/default" => 0}, cycles)
