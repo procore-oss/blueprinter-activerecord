@@ -14,7 +14,7 @@ module BlueprinterActiveRecord
       #
       # Example:
       #
-      #   preloads = BlueprinterActiveRecord::Preloader.preloads(WidgetBlueprint, :extended, model: Widget)
+      #   preloads = BlueprinterActiveRecord::Preloads::ApiV1.preloads(WidgetBlueprint, :extended, model: Widget)
       #   q = Widget.where(...).order(...).preload(preloads)
       #
       # @param blueprint [Class] The Blueprint class
@@ -27,9 +27,8 @@ module BlueprinterActiveRecord
         view = blueprint.reflections.fetch(view_name)
         preload_vals = view.associations.each_with_object({}) { |(_name, assoc), acc|
           # look for a matching association on the model
-          if (preload = association_preloads(assoc, model, cycles))
-            acc[assoc.name] = preload
-          end
+          preload = association_preloads(model, assoc.name, blueprint: assoc.blueprint, view: assoc.view, options: assoc.options, cycles:)
+          acc[assoc.name] = preload if preload
 
           # look for a :preload option on the association
           if (custom = assoc.options[:preload])
@@ -45,24 +44,25 @@ module BlueprinterActiveRecord
         }
       end
 
-      def self.association_preloads(assoc, model, cycles)
-        max_cycles = assoc.options.fetch(:max_recursion, DEFAULT_MAX_RECURSION)
+      def self.association_preloads(model, name, blueprint:, view:, options:, cycles:)
+        return {} if blueprint.is_a? Proc
+
+        if defined?(::Blueprinter::V2) && blueprint <= ::Blueprinter::V2::Base
+          blueprint = blueprint[options[:view]] if options[:view]
+          return ApiV2.association_preloads(model, name.to_s, blueprint:, options:, cycles:)
+        end
+
+        max_cycles = options.fetch(:max_recursion, DEFAULT_MAX_RECURSION)
         if model == :polymorphic
-          if assoc.blueprint.is_a? Proc
-            {}
+          cycles, count = count_cycles(blueprint, view, cycles)
+          count < max_cycles ? preloads(blueprint, view, model:, cycles:) : {}
+        elsif (ref = model.reflections[name.to_s])
+          if ref.belongs_to? && ref.polymorphic?
+            cycles, count = count_cycles(blueprint, view, cycles)
+            count < max_cycles ? preloads(blueprint, view, model: :polymorphic, cycles:) : {}
           else
-            cycles, count = count_cycles(assoc.blueprint, assoc.view, cycles)
-            count < max_cycles ? preloads(assoc.blueprint, assoc.view, model: model, cycles: cycles) : {}
-          end
-        elsif (ref = model.reflections[assoc.name.to_s])
-          if assoc.blueprint.is_a? Proc
-            {}
-          elsif ref.belongs_to? && ref.polymorphic?
-            cycles, count = count_cycles(assoc.blueprint, assoc.view, cycles)
-            count < max_cycles ? preloads(assoc.blueprint, assoc.view, model: :polymorphic, cycles: cycles) : {}
-          else
-            cycles, count = count_cycles(assoc.blueprint, assoc.view, cycles)
-            count < max_cycles ? preloads(assoc.blueprint, assoc.view, model: ref.klass, cycles: cycles) : {}
+            cycles, count = count_cycles(blueprint, view, cycles)
+            count < max_cycles ? preloads(blueprint, view, model: ref.klass, cycles:) : {}
           end
         end
       end
