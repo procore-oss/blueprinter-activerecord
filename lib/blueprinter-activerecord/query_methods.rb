@@ -43,7 +43,7 @@ module BlueprinterActiveRecord
 
       if blueprint and view
         # preload right now
-        preloads = Preloader.preloads(blueprint, view, model: model)
+        preloads = Preloads.for(blueprint, view, model: model)
         public_send(use, preloads)
       else
         # preload during render
