@@ -66,12 +66,12 @@ class NestedRenderV2Test < Minitest::Test
     end
 
     widget_blueprint = Class.new(application_blueprint) do
-      object :category, category_blueprint
+      association :category, category_blueprint
     end
 
     project_blueprint = Class.new(application_blueprint) do
-      object :customer, customer_blueprint
-      collection(:widgets, widget_blueprint) { |object, _ctx| object.widgets }
+      association :customer, customer_blueprint
+      association(:widgets, [widget_blueprint]) { |object, _ctx| object.widgets }
     end
 
     q = Project.all.preload(widgets: :category).strict_loading
@@ -111,7 +111,7 @@ class NestedRenderV2Test < Minitest::Test
       fields :id, :name
 
       view :nested do
-        collection :children, self
+        association :children, [self]
       end
     end
 

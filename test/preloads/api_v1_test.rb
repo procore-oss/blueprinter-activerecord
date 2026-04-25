@@ -4,7 +4,7 @@ require 'test_helper'
 
 class PreloadsApiV1Test < Minitest::Test
   def test_preload_with_model
-    preloads = BlueprinterActiveRecord::Preloads::ApiV1.preloads(WidgetBlueprint, :extended, model: Widget)
+    preloads = BlueprinterActiveRecord::Preloads.preloads(WidgetBlueprint, :extended, model: Widget)
     assert_equal({
       category: {},
       project: {customer: {}},
@@ -14,7 +14,7 @@ class PreloadsApiV1Test < Minitest::Test
   end
 
   def test_preload_with_model_with_custom_names
-    preloads = BlueprinterActiveRecord::Preloads::ApiV1.preloads(WidgetBlueprint, :short, model: Widget)
+    preloads = BlueprinterActiveRecord::Preloads.preloads(WidgetBlueprint, :short, model: Widget)
     assert_equal({
       category: {},
       project: {customer: {}},
@@ -24,7 +24,7 @@ class PreloadsApiV1Test < Minitest::Test
   end
 
   def test_preload_with_polymorphic_model
-    preloads = BlueprinterActiveRecord::Preloads::ApiV1.preloads(WidgetBlueprint, :extended, model: :polymorphic)
+    preloads = BlueprinterActiveRecord::Preloads.preloads(WidgetBlueprint, :extended, model: :polymorphic)
     assert_equal({:battery1=>{:fake_assoc=>{}, :fake_assoc2=>{}, :refurb_plan=>{}}, :battery2=>{:fake_assoc=>{}, :fake_assoc2=>{}, :refurb_plan=>{}}, :category=>{}, :parts=>{}, :project=>{:customer=>{}}}, preloads)
   end
 
@@ -39,7 +39,7 @@ class PreloadsApiV1Test < Minitest::Test
       end
     end
 
-    preloads = BlueprinterActiveRecord::Preloads::ApiV1.preloads(blueprint, :default, model: Widget)
+    preloads = BlueprinterActiveRecord::Preloads.preloads(blueprint, :default, model: Widget)
     assert_equal({
       project: {},
       category: {},
@@ -58,7 +58,7 @@ class PreloadsApiV1Test < Minitest::Test
       end
     end
 
-    preloads = BlueprinterActiveRecord::Preloads::ApiV1.preloads(blueprint, :default, model: Widget)
+    preloads = BlueprinterActiveRecord::Preloads.preloads(blueprint, :default, model: Widget)
     assert_equal({
       project: {},
       category: {},
@@ -72,8 +72,8 @@ class PreloadsApiV1Test < Minitest::Test
       association :widgets, blueprint: WidgetBlueprint
     end
 
-    preloads = BlueprinterActiveRecord::Preloads::ApiV1.preloads(blueprint, :default, model: Category)
-    expected = BlueprinterActiveRecord::Preloads::ApiV1::DEFAULT_MAX_RECURSION.times.
+    preloads = BlueprinterActiveRecord::Preloads.preloads(blueprint, :default, model: Category)
+    expected = BlueprinterActiveRecord::Preloads::DEFAULT_MAX_RECURSION.times.
       reduce({widgets: {}, children: {}}) { |acc, _|
         {widgets: {}, children: acc}
       }
@@ -86,7 +86,7 @@ class PreloadsApiV1Test < Minitest::Test
       association :widgets, blueprint: WidgetBlueprint
     end
 
-    preloads = BlueprinterActiveRecord::Preloads::ApiV1.preloads(blueprint, :default, model: Category)
+    preloads = BlueprinterActiveRecord::Preloads.preloads(blueprint, :default, model: Category)
     expected = 5.times.reduce({widgets: {}, children: {}}) { |acc, _|
       {widgets: {}, children: acc}
     }
@@ -94,8 +94,8 @@ class PreloadsApiV1Test < Minitest::Test
   end
 
   def test_preload_with_cyclic_blueprints_default_max
-    preloads = BlueprinterActiveRecord::Preloads::ApiV1.preloads(CategoryBlueprint, :cyclic, model: Category)
-    expected = BlueprinterActiveRecord::Preloads::ApiV1::DEFAULT_MAX_RECURSION.times.
+    preloads = BlueprinterActiveRecord::Preloads.preloads(CategoryBlueprint, :cyclic, model: Category)
+    expected = BlueprinterActiveRecord::Preloads::DEFAULT_MAX_RECURSION.times.
       reduce({widgets: {}}) { |acc, _|
         {widgets: {category: acc}}
       }
@@ -103,7 +103,7 @@ class PreloadsApiV1Test < Minitest::Test
   end
 
   def test_halts_on_dynamic_blueprint
-    preloads = BlueprinterActiveRecord::Preloads::ApiV1.preloads(WidgetBlueprint, :dynamic, model: Widget)
+    preloads = BlueprinterActiveRecord::Preloads.preloads(WidgetBlueprint, :dynamic, model: Widget)
     assert_equal({category: {}}, preloads)
   end
 
@@ -111,7 +111,7 @@ class PreloadsApiV1Test < Minitest::Test
     widget_blueprint = Class.new(Blueprinter::Base) do
       association :category, blueprint: CategoryBlueprintV2
     end
-    preloads = BlueprinterActiveRecord::Preloads::ApiV1.preloads(widget_blueprint, :default, model: Widget)
+    preloads = BlueprinterActiveRecord::Preloads.preloads(widget_blueprint, :default, model: Widget)
     assert_equal({ category: {} }, preloads)
   end
 
@@ -119,18 +119,18 @@ class PreloadsApiV1Test < Minitest::Test
     widget_blueprint = Class.new(Blueprinter::Base) do
       association :category, blueprint: CategoryBlueprintV2, view: :extended
     end
-    preloads = BlueprinterActiveRecord::Preloads::ApiV1.preloads(widget_blueprint, :default, model: Widget)
+    preloads = BlueprinterActiveRecord::Preloads.preloads(widget_blueprint, :default, model: Widget)
     assert_equal({ category: {} }, preloads)
   end
 
   def test_cycle_detection1
-    cycles, count = BlueprinterActiveRecord::Preloads::ApiV1.count_cycles(CategoryBlueprint, :default, {})
+    cycles, count = BlueprinterActiveRecord::Preloads.count_cycles(CategoryBlueprint, :default, {})
     assert_equal({"CategoryBlueprint/default" => 0}, cycles)
     assert_equal 0, count
   end
 
   def test_cycle_detection2
-    cycles, count = BlueprinterActiveRecord::Preloads::ApiV1.count_cycles(CategoryBlueprint, :default, {
+    cycles, count = BlueprinterActiveRecord::Preloads.count_cycles(CategoryBlueprint, :default, {
       "CategoryBlueprint/default" => 0,
     })
     assert_equal({"CategoryBlueprint/default" => 1}, cycles)
@@ -138,7 +138,7 @@ class PreloadsApiV1Test < Minitest::Test
   end
 
   def test_cycle_detection3
-    cycles, count = BlueprinterActiveRecord::Preloads::ApiV1.count_cycles(WidgetBlueprint, :default, {
+    cycles, count = BlueprinterActiveRecord::Preloads.count_cycles(WidgetBlueprint, :default, {
       "WidgetBlueprint/default" => 9,
       "CategoryBlueprint/foo" => 8,
     })

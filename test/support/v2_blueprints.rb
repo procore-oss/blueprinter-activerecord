@@ -10,7 +10,7 @@ class ProjectBlueprintV2 < Blueprinter::V2::Base
 
   view :extended do
     fields :id, :name
-    object :customer, CustomerBlueprintV2
+    association :customer, CustomerBlueprintV2
   end
 
   view :extended_plus do
@@ -19,7 +19,7 @@ class ProjectBlueprintV2 < Blueprinter::V2::Base
 
   view :extended_plus_with_widgets do
     use :extended_plus
-    collection :widgets, WidgetBlueprintV2
+    association :widgets, [WidgetBlueprintV2]
   end
 end
 
@@ -31,11 +31,11 @@ class CategoryBlueprintV2 < Blueprinter::V2::Base
   end
 
   view :nested do
-    collection :children, CategoryBlueprintV2[:nested]
+    association :children, [CategoryBlueprintV2[:nested]]
   end
 
   view :cyclic do
-    collection :widgets, WidgetBlueprintV2[:cyclic]
+    association :widgets, [WidgetBlueprintV2[:cyclic]]
   end
 end
 
@@ -56,8 +56,8 @@ class BatteryBlueprintV2 < Blueprinter::V2::Base
       "#{battery.num_lead} parts lead, #{battery.num_acid} parts acid"
     end
   end
-  object :refurb_plan, RefurbPlanBlueprintV2
-  object :fake_assoc, FakeAssocBlueprintV2
+  association :refurb_plan, RefurbPlanBlueprintV2
+  association :fake_assoc, FakeAssocBlueprintV2
 end
 
 class PartBlueprintV2 < Blueprinter::V2::Base
@@ -69,30 +69,30 @@ class WidgetBlueprintV2 < Blueprinter::V2::Base
 
   view :extended do
     fields :id, :name, :price, :description
-    collection :parts, PartBlueprintV2
-    object :category, CategoryBlueprintV2[:extended]
-    object :project, ProjectBlueprintV2[:extended]
-    object :battery1, BatteryBlueprintV2
-    object :battery2, BatteryBlueprintV2
+    association :parts, [PartBlueprintV2]
+    association :category, CategoryBlueprintV2[:extended]
+    association :project, ProjectBlueprintV2[:extended]
+    association :battery1, BatteryBlueprintV2
+    association :battery2, BatteryBlueprintV2
   end
 
   view :short do
     fields :id, :name, :price, :description
-    collection :parts, PartBlueprintV2
-    object :category, CategoryBlueprintV2[:extended]
-    object :project, ProjectBlueprintV2[:extended]
-    object :bat1, BatteryBlueprintV2, from: :battery1
-    object :bat2, BatteryBlueprintV2, from: :battery2
+    association :parts, [PartBlueprintV2]
+    association :category, CategoryBlueprintV2[:extended]
+    association :project, ProjectBlueprintV2[:extended]
+    association :bat1, BatteryBlueprintV2, from: :battery1
+    association :bat2, BatteryBlueprintV2, from: :battery2
   end
 
   view :no_power do
     fields :id, :name, :price, :description
-    collection :parts, PartBlueprintV2
-    object :category, CategoryBlueprintV2[:extended]
-    object :project, ProjectBlueprintV2[:extended]
+    association :parts, [PartBlueprintV2]
+    association :category, CategoryBlueprintV2[:extended]
+    association :project, ProjectBlueprintV2[:extended]
   end
 
   view :cyclic do
-    object :category, CategoryBlueprintV2[:cyclic]
+    association :category, CategoryBlueprintV2[:cyclic]
   end
 end

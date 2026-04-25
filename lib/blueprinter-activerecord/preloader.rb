@@ -35,11 +35,11 @@ module BlueprinterActiveRecord
       if obj.is_a?(ActiveRecord::Relation) && (preload?(ctx) || obj.preload_blueprint_method)
         loader = obj.preload_blueprint_method || use
         obj.before_preload_blueprint = extract_preloads obj
-        preloads = Preloads::ApiV2.preloads(ctx.blueprint.class, model: obj.model)
+        preloads = Preloads.preloads(ctx.blueprint.class, :default, model: obj.model)
         ctx.object = obj.public_send(loader, preloads)
       elsif obj.is_a?(ActiveRecord::Base) && preload?(ctx)
-        preloads = Preloads::ApiV2.preloads(ctx.blueprint.class, model: obj.class)
-        Preloads::ApiV2.preload_into(obj, preloads)
+        preloads = Preloads.preloads(ctx.blueprint.class, :default, model: obj.class)
+        Preloads.preload_into(obj, preloads)
       end
       yield ctx
     end
@@ -58,7 +58,7 @@ module BlueprinterActiveRecord
       if object.is_a?(ActiveRecord::Relation) && !object.loaded?
         if object.preload_blueprint_method || auto || auto_proc&.call(object, blueprint, view, options) == true
           object.before_preload_blueprint = extract_preloads object
-          blueprint_preloads = Preloads::ApiV1.preloads(blueprint, view, model: object.model)
+          blueprint_preloads = Preloads.preloads(blueprint, view, model: object.model)
           loader = object.preload_blueprint_method || use
           object.public_send(loader, blueprint_preloads)
         else
