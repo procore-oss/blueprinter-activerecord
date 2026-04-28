@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
       - name: Check if version has been updated
         id: check
-        uses: tj-actions/changed-files@2bb135777322059ee3a3c9239999b159ff49febc # v43
+        uses: tj-actions/changed-files@5f4a0b68ac816d8cb4a52bd88b460549197b7ff1 # v43
         with:
           files: lib/blueprinter-activerecord/version.rb
   release:
