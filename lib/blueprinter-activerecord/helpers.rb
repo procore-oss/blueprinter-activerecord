@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module BlueprinterActiveRecord
+  # @!visibility private
   module Helpers
     extend self
 

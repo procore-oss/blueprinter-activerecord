@@ -1,13 +1,17 @@
 # frozen_string_literal: true
 
 module BlueprinterActiveRecord
+  # Included by ActiveRecord::Relation
   module QueryMethods
+    # Extended by ActiveRecord::Base
     module Delegates
+      # See {BlueprinterActiveRecord::QueryMethods::preload_blueprint}
       def preload_blueprint(blueprint = nil, view = :default, use: :preload)
         all.preload_blueprint(blueprint, view, use: use)
       end
     end
 
+    # @!visibility private
     ACTIONS = %i(preload eager_load includes).freeze
 
     #
@@ -43,7 +47,7 @@ module BlueprinterActiveRecord
 
       if blueprint and view
         # preload right now
-        preloads = Preloader.preloads(blueprint, view, model: model)
+        preloads = Preloads.preloads(blueprint, view, model: model)
         public_send(use, preloads)
       else
         # preload during render
