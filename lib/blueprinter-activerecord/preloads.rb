@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module BlueprinterActiveRecord
+  # @!visibility private
   module Preloads
     DEFAULT_MAX_RECURSION = 10
 
@@ -83,7 +84,7 @@ module BlueprinterActiveRecord
         return assoc.view, assoc.name
       else
         # V2
-        return :default, assoc.from
+        return :default, assoc.source
       end
     end
 

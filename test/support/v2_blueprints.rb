@@ -81,8 +81,8 @@ class WidgetBlueprintV2 < Blueprinter::V2::Base
     association :parts, [PartBlueprintV2]
     association :category, CategoryBlueprintV2[:extended]
     association :project, ProjectBlueprintV2[:extended]
-    association :bat1, BatteryBlueprintV2, from: :battery1
-    association :bat2, BatteryBlueprintV2, from: :battery2
+    association :bat1, BatteryBlueprintV2, source: :battery1
+    association :bat2, BatteryBlueprintV2, source: :battery2
   end
 
   view :no_power do
