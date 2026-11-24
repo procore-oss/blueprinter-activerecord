@@ -1,6 +1,8 @@
-### NEXT (?)
+### 1.4.0 (2026-11-24)
 
-- Drop support for Ruby 3.0
+- Support ActiveRecord 8.0
+- Support Ruby 4.0
+- Drop support for Ruby 3.0 and 3.1
 - Drop support for ActiveRecord 6.1 - 7.0
 
 ### 1.3.0 (2024-09-04)
