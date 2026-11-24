@@ -1,3 +1,12 @@
+### 1.5.0 (2026-11-24)
+
+- Support ActiveRecord 8.1
+- Support Ruby 3.4
+- Drop support for Ruby 3.2 (EOL 2026-03-31)
+- Drop support for ActiveRecord 7.1 and 7.2 (EOL 2025-10-01 and 2026-08-09)
+- Deprecate ActiveRecord 8.0 (EOL 2026-11-07); support will be removed in a future release
+- Deprecate Ruby 3.3 (EOL 2027-03-31); support will be removed in a future release
+
 ### 1.4.0 (2026-11-24)
 
 - Support ActiveRecord 8.0
